@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fitbuddy-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: FITBUDDY_WORKOUT_MODEL
+        value: gemini-2.5-pro
+      - key: FITBUDDY_TIP_MODEL
+        value: gemini-2.5-flash
+      - key: APP_ENV
+        value: production

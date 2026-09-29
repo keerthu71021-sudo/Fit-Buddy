@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>FitBuddy | Personal fitness plan</title>
+	<style>
+		:root { --ink: #17231e; --muted: #68756e; --paper: #f4f5ef; --card: #fffdf8; --green: #1d6b4d; --lime: #d8ec75; --line: #dce3d8; }
+		* { box-sizing: border-box; }
+		body { margin: 0; color: var(--ink); background-color: var(--paper); background-position: center; background-size: cover; background-attachment: fixed; font-family: Georgia, "Times New Roman", serif; transition: background-image .35s ease; }
+		body[data-view="profile"] { background-image: linear-gradient(90deg, rgba(23,35,30,.52), rgba(23,35,30,.32)), url("https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=1800&q=85"); }
+		body[data-view="plan"] { background-image: linear-gradient(90deg, rgba(23,35,30,.52), rgba(23,35,30,.32)), url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1800&q=85"); }
+		body[data-view="nutrition"] { background-image: linear-gradient(90deg, rgba(23,35,30,.52), rgba(23,35,30,.32)), url("https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1800&q=85"); }
+		body[data-view="feedback"] { background-image: linear-gradient(90deg, rgba(23,35,30,.52), rgba(23,35,30,.32)), url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=85"); }
+		body[data-view="admin"] { background-image: linear-gradient(90deg, rgba(23,35,30,.58), rgba(23,35,30,.34)), url("https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85"); }
+		main > section:first-child h1 { color: #fffdf8; }
+		main > section:first-child .intro { color: rgba(255,253,248,.86); }
+		main > section:first-child .eyebrow { color: var(--lime); }
+		main { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(320px, 1.2fr); gap: 5vw; max-width: 1180px; min-height: 100vh; margin: auto; padding: 7vw 6vw; align-items: center; }
+		.eyebrow { color: var(--green); font: 700 12px/1.2 Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+		h1 { max-width: 530px; margin: 18px 0; font-size: clamp(44px, 6vw, 82px); line-height: .95; font-weight: 500; letter-spacing: -2px; }
+		.intro { max-width: 420px; color: var(--muted); font: 17px/1.6 Arial, sans-serif; }
+		.panel { padding: clamp(24px, 4vw, 44px); background: var(--card); border: 1px solid var(--line); box-shadow: 12px 12px 0 var(--lime); }
+		nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+		nav a { padding: 8px 10px; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .5px; text-decoration: none; text-transform: uppercase; }
+		nav a[aria-current="page"] { color: var(--green); background: #edf3df; }
+		.view-panel[hidden] { display: none; }
+		.hint { color: var(--muted); font: 14px/1.5 Arial, sans-serif; }
+		form { display: grid; gap: 16px; }
+		.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+		label { display: grid; gap: 7px; color: var(--muted); font: 700 12px/1.2 Arial, sans-serif; text-transform: uppercase; letter-spacing: .8px; }
+		input { width: 100%; padding: 13px 12px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 0; font: 16px Georgia, serif; }
+		input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+		button { margin-top: 8px; padding: 15px 18px; color: white; background: var(--green); border: 0; font: 700 13px Arial, sans-serif; letter-spacing: .7px; text-transform: uppercase; cursor: pointer; }
+		button:hover { background: #14523a; }
+		button:disabled { opacity: .6; cursor: wait; }
+		#status { min-height: 20px; margin: 18px 0 0; color: var(--muted); font: 14px/1.4 Arial, sans-serif; }
+		#result { display: none; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+		#result h2 { margin: 0 0 8px; font-size: 28px; font-weight: 500; }
+		#result p { margin: 0 0 16px; color: var(--muted); font: 14px Arial, sans-serif; }
+		#ai-plan { margin: 0; color: var(--ink); white-space: pre-wrap; font: 15px/1.6 Arial, sans-serif; }
+		#nutrition { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+		#nutrition h3 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+		#nutrition-guidance { margin-bottom: 14px; }
+		#daily-habits { display: grid; gap: 7px; margin: 0 0 18px; padding-left: 20px; color: var(--ink); font: 14px/1.5 Arial, sans-serif; }
+		#meal-ideas { display: grid; gap: 8px; margin: 0; }
+		.meal { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font: 14px/1.4 Arial, sans-serif; }
+		.meal strong { color: var(--green); text-transform: capitalize; }
+		#feedback { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+		#feedback h3 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+		#feedback-form { gap: 10px; }
+		#feedback-form select, #feedback-form textarea { width: 100%; padding: 11px 12px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 0; font: 15px Georgia, serif; }
+		#feedback-form textarea { min-height: 90px; resize: vertical; }
+		#feedback-form button { margin-top: 2px; }
+		#feedback-status { min-height: 20px; margin: 8px 0 0; color: var(--muted); font: 14px/1.4 Arial, sans-serif; }
+		#admin-users { display: grid; gap: 14px; margin-top: 22px; }
+		.user-record { padding: 16px; background: rgba(255,255,255,.72); border: 1px solid var(--line); }
+		.user-record h3 { margin: 0 0 6px; font-size: 20px; }
+		.user-details, .user-feedback { color: var(--muted); font: 14px/1.5 Arial, sans-serif; }
+		.user-feedback { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+		.feedback-record { margin-top: 8px; padding-left: 12px; border-left: 3px solid var(--lime); }
+		#exercises { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+		#exercises li { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line); font: 15px Arial, sans-serif; }
+		#exercises span { color: var(--green); font-weight: 700; white-space: nowrap; }
+		@media (max-width: 760px) { main { grid-template-columns: 1fr; padding: 48px 24px; } h1 { font-size: 56px; } .panel { box-shadow: 7px 7px 0 var(--lime); } }
+		@media (max-width: 420px) { .fields { grid-template-columns: 1fr; } }
+	</style>
+</head>
+<body>
+	<main>
+		<section>
+			<div class="eyebrow">FitBuddy / Start here</div>
+			<h1>A plan that meets you where you are.</h1>
+			<p class="intro">Tell us a little about yourself. FitBuddy will shape a simple weekly workout around your goal.</p>
+		</section>
+		<section class="panel">
+			<nav id="app-nav" aria-label="FitBuddy sections">
+				<a href="#profile" data-view="profile" aria-current="page">Profile</a>
+				<a href="#plan" data-view="plan">Workout plan</a>
+				<a href="#nutrition" data-view="nutrition">Nutrition</a>
+				<a href="#feedback" data-view="feedback">Feedback</a>
+				<a href="#admin" data-view="admin">Admin</a>
+			</nav>
+			<section id="profile-view" class="view-panel">
+				<form id="profile-form">
+					<div class="fields">
+						<label>Name <input name="name" required maxlength="100" autocomplete="name"></label>
+						<label>Age <input name="age" type="number" min="13" max="120" required></label>
+						<label>Height (cm) <input name="height_cm" type="number" min="1" max="300" step="0.1" required></label>
+						<label>Weight (kg) <input name="weight_kg" type="number" min="1" max="500" step="0.1" required></label>
+					</div>
+					<label>Primary goal <input name="goal" required maxlength="200" placeholder="Build strength, lose weight, improve fitness"></label>
+					<button type="submit">Create my plan</button>
+				</form>
+				<div id="status" role="status"></div>
+			</section>
+			<section id="plan-view" class="view-panel" hidden>
+				<p id="plan-empty" class="hint">Create your profile first to see your workout plan.</p>
+				<div id="result">
+					<h2>Your AI plan</h2>
+					<p id="ai-plan"></p>
+				</div>
+			</section>
+			<section id="nutrition-view" class="view-panel" hidden>
+				<p id="nutrition-empty" class="hint">Create your profile first to see nutrition tips.</p>
+				<div id="nutrition" hidden>
+					<h2>Nutrition tips</h2>
+					<p id="nutrition-guidance"></p>
+					<ul id="daily-habits"></ul>
+					<div id="meal-ideas"></div>
+				</div>
+			</section>
+			<section id="feedback-view" class="view-panel" hidden>
+				<div id="feedback">
+					<h2>How was your plan?</h2>
+					<form id="feedback-form">
+						<label>Rating
+							<select name="rating" required>
+								<option value="">Choose a rating</option>
+								<option value="5">5 - Excellent</option>
+								<option value="4">4 - Good</option>
+								<option value="3">3 - Okay</option>
+								<option value="2">2 - Needs improvement</option>
+								<option value="1">1 - Poor</option>
+							</select>
+						</label>
+						<label>Comments
+							<textarea name="message" maxlength="1000" required placeholder="Tell us what would make FitBuddy better"></textarea>
+						</label>
+						<button type="submit">Send feedback</button>
+					</form>
+					<div id="feedback-status" role="status"></div>
+				</div>
+			</section>
+			<section id="admin-view" class="view-panel" hidden>
+				<h2>Users and feedback</h2>
+				<p>Enter the admin token to load saved profiles and feedback.</p>
+				<form id="admin-form">
+					<label>Admin token <input id="admin-token" type="password" required autocomplete="off"></label>
+					<button type="submit">Load users</button>
+				</form>
+				<div id="admin-status" role="status"></div>
+				<div id="admin-users"></div>
+			</section>
+		</section>
+	</main>
+	<script>
+		const form = document.querySelector("#profile-form");
+		const button = form.querySelector("button");
+		const status = document.querySelector("#status");
+		const result = document.querySelector("#result");
+		const planEmpty = document.querySelector("#plan-empty");
+		const aiPlan = document.querySelector("#ai-plan");
+		const nutritionBox = document.querySelector("#nutrition");
+		const nutritionEmpty = document.querySelector("#nutrition-empty");
+		const nutritionGuidance = document.querySelector("#nutrition-guidance");
+		const dailyHabits = document.querySelector("#daily-habits");
+		const mealIdeas = document.querySelector("#meal-ideas");
+		const feedbackForm = document.querySelector("#feedback-form");
+		const feedbackStatus = document.querySelector("#feedback-status");
+		const adminForm = document.querySelector("#admin-form");
+		const adminToken = document.querySelector("#admin-token");
+		const adminStatus = document.querySelector("#admin-status");
+		const adminUsers = document.querySelector("#admin-users");
+		const navigationLinks = document.querySelectorAll("#app-nav a");
+		const viewPanels = document.querySelectorAll(".view-panel");
+		let currentProfileId = null;
+
+		function showView(viewName) {
+			const validView = ["profile", "plan", "nutrition", "feedback", "admin"].includes(viewName) ? viewName : "profile";
+			document.body.dataset.view = validView;
+			viewPanels.forEach((panel) => {
+				panel.hidden = panel.id !== `${validView}-view`;
+			});
+			navigationLinks.forEach((link) => {
+				if (link.dataset.view === validView) link.setAttribute("aria-current", "page");
+				else link.removeAttribute("aria-current");
+			});
+		}
+
+		function updateViewFromHash() {
+			showView(window.location.hash.slice(1));
+		}
+
+		window.addEventListener("hashchange", updateViewFromHash);
+		updateViewFromHash();
+
+		form.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			button.disabled = true;
+			status.textContent = "Building your plan...";
+			result.style.display = "none";
+			const data = Object.fromEntries(new FormData(form));
+			data.age = Number(data.age);
+			data.height_cm = Number(data.height_cm);
+			data.weight_kg = Number(data.weight_kg);
+
+			try {
+				const profileResponse = await fetch("/profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+				if (!profileResponse.ok) throw new Error("Please check your details and try again.");
+				const profile = await profileResponse.json();
+				currentProfileId = profile.id;
+				const [planResponse, nutritionResponse] = await Promise.all([
+					fetch(`/profiles/${profile.id}/ai-plan`, { method: "POST" }),
+					fetch(`/profiles/${profile.id}/nutrition`),
+				]);
+				if (!planResponse.ok || !nutritionResponse.ok) throw new Error("We could not generate your plan.");
+				const [plan, nutrition] = await Promise.all([planResponse.json(), nutritionResponse.json()]);
+				aiPlan.textContent = plan.plan;
+				nutritionGuidance.textContent = nutrition.guidance;
+
+				// Build with DOM nodes + textContent so AI output can never inject HTML.
+				dailyHabits.replaceChildren(...nutrition.daily_habits.map((habit) => {
+					const li = document.createElement("li");
+					li.textContent = String(habit);
+					return li;
+				}));
+				mealIdeas.replaceChildren(...Object.entries(nutrition.meal_ideas).map(([meal, idea]) => {
+					const row = document.createElement("div");
+					row.className = "meal";
+					const label = document.createElement("strong");
+					label.textContent = meal;
+					const text = document.createElement("span");
+					text.textContent = String(idea);
+					row.append(label, text);
+					return row;
+				}));
+
+				planEmpty.hidden = true;
+				nutritionEmpty.hidden = true;
+				nutritionBox.hidden = false;
+				result.style.display = "block";
+				status.textContent = "Your plan is ready.";
+				window.location.hash = "plan";
+			} catch (error) {
+				status.textContent = error.message;
+			} finally {
+				button.disabled = false;
+			}
+		});
+
+		feedbackForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const feedbackButton = feedbackForm.querySelector("button");
+			feedbackButton.disabled = true;
+			feedbackStatus.textContent = "Sending feedback...";
+
+			try {
+				const data = Object.fromEntries(new FormData(feedbackForm));
+				data.rating = Number(data.rating);
+				data.profile_id = currentProfileId;
+				const response = await fetch("/feedback", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data),
+				});
+				if (!response.ok) throw new Error("We could not send your feedback.");
+				const feedbackResult = await response.json();
+				feedbackForm.reset();
+				if (feedbackResult.updated_plan) {
+					aiPlan.textContent = feedbackResult.updated_plan;
+					feedbackStatus.textContent = "Thanks. Your workout plan was updated using your feedback.";
+				} else {
+					feedbackStatus.textContent = "Thanks for helping us improve FitBuddy.";
+				}
+			} catch (error) {
+				feedbackStatus.textContent = error.message;
+			} finally {
+				feedbackButton.disabled = false;
+			}
+		});
+
+		adminForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const loadButton = adminForm.querySelector("button");
+			loadButton.disabled = true;
+			adminStatus.textContent = "Loading users...";
+			adminUsers.replaceChildren();
+
+			try {
+				const response = await fetch("/admin/users", {
+					headers: { "X-Admin-Token": adminToken.value },
+				});
+				if (response.status === 401) throw new Error("Invalid admin token.");
+				if (!response.ok) throw new Error("Could not load users.");
+				const data = await response.json();
+				if (!data.users.length) {
+					adminStatus.textContent = "No users have created a plan yet.";
+					return;
+				}
+
+				data.users.forEach((user) => {
+					const record = document.createElement("article");
+					record.className = "user-record";
+					const heading = document.createElement("h3");
+					heading.textContent = user.name;
+					const details = document.createElement("div");
+					details.className = "user-details";
+					details.textContent = `${user.age} years | ${user.height_cm} cm | ${user.weight_kg} kg | Goal: ${user.goal}`;
+					const feedback = document.createElement("div");
+					feedback.className = "user-feedback";
+					feedback.textContent = user.feedback.length ? "Feedback:" : "No feedback submitted.";
+					user.feedback.forEach((entry) => {
+						const item = document.createElement("div");
+						item.className = "feedback-record";
+						item.textContent = `${entry.rating}/5 - ${entry.message}`;
+						feedback.append(item);
+					});
+					record.append(heading, details, feedback);
+					adminUsers.append(record);
+				});
+				adminStatus.textContent = `${data.users.length} user${data.users.length === 1 ? "" : "s"} loaded.`;
+			} catch (error) {
+				adminStatus.textContent = error.message;
+			} finally {
+				loadButton.disabled = false;
+			}
+		});
+	</script>
+</body>
+</html>
